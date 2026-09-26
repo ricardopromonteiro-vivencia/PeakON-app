@@ -1,0 +1,30 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  body {
+    @apply bg-[#fbf8ff] dark:bg-[#1a1b22] text-[#1a1b22] dark:text-[#fbf8ff];
+    min-height: max(884px, 100dvh);
+  }
+}
+
+@layer utilities {
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  
+  .timeline-track {
+    position: absolute;
+    left: 22px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: #b9c3ff;
+    z-index: 0;
+  }
+  
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+  }
+}

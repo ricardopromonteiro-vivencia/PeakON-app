@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-bright": "#fbf8ff",
+              "error": "#ba1a1a",
+              "on-surface-variant": "#444652",
+              "tertiary": "#400500",
+              "error-container": "#ffdad6",
+              "surface-variant": "#e3e1ea",
+              "surface-container-high": "#e9e7f0",
+              "primary": "#001359",
+              "surface-tint": "#3f56ba",
+              "on-primary": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-tertiary": "#ffffff",
+              "inverse-surface": "#2f3037",
+              "on-surface": "#1a1b22",
+              "on-secondary": "#ffffff",
+              "tertiary-fixed": "#ffdad3",
+              "secondary-container": "#00ccf9",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-fixed": "#001f28",
+              "on-tertiary-fixed-variant": "#832514",
+              "on-secondary-fixed-variant": "#004e60",
+              "surface-container-highest": "#e3e1ea",
+              "on-error": "#ffffff",
+              "primary-container": "#00238c",
+              "surface-dim": "#dad9e2",
+              "tertiary-container": "#650f02",
+              "background": "#fbf8ff",
+              "inverse-on-surface": "#f1f0f9",
+              "on-primary-fixed": "#001257",
+              "surface-container-low": "#f4f2fc",
+              "outline-variant": "#c5c5d5",
+              "outline": "#757684",
+              "on-primary-fixed-variant": "#243ca1",
+              "surface-container": "#eeedf6",
+              "primary-fixed-dim": "#b9c3ff",
+              "on-background": "#1a1b22",
+              "secondary-fixed-dim": "#4cd6ff",
+              "tertiary-fixed-dim": "#ffb4a5",
+              "primary-fixed": "#dde1ff",
+              "on-primary-container": "#7d92fb",
+              "inverse-primary": "#b9c3ff",
+              "secondary": "#00677f",
+              "on-tertiary-container": "#f0755c",
+              "secondary-fixed": "#b7eaff",
+              "on-secondary-container": "#005266",
+              "surface": "#fbf8ff",
+              "on-tertiary-fixed": "#3e0400"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .timeline-track {
+        position: absolute;
+        left: 22px;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: #b9c3ff;
+        z-index: 0;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(16px);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-[#fbf8ff] dark:bg-[#1a1b22] flex justify-between items-center px-6 py-4 w-full docked full-width top-0 sticky z-40">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#001359] dark:text-[#b9c3ff] cursor-pointer" data-icon="menu">menu</span>
+<h1 class="font-['Inter'] font-bold text-2xl tracking-tight text-[#001359] dark:text-[#b9c3ff]">Session Focus</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="Trainer Profile Photo" data-alt="Professional fitness trainer portrait with a confident expression, athletic build, indoor gym lighting background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcrnrUUYTJOw74JsfdvFV1zijCdxd23JQtpgR7mGq3h4T9n5qv3R8hbiDZQgB7vgu_wo3TVG4INBo6rVhH9mxsdFPD8lYvxXlk6GcnBQbMohWJkQ1jYmV2ZFDPM3NYnbtFOoS3ffOB_MLSBpG_-W_PsE2Obc2R-m5_4aD1I0PbqYZ2ym4-Z0XCThx4YIzs3aX-5xUiYuImIFJjmL4Be4ymoBIa8Tk0JHMq00Lc1ikhVkq3iel21OkTYla4UtfBW0JEb-E8mjd_TKD5"/>
+</div>
+</header>
+<main class="px-6 pt-8 space-y-10">
+<!-- Date Headline -->
+<section>
+<p class="text-on-surface-variant font-label text-sm uppercase tracking-widest mb-1">Status do Dia</p>
+<h2 class="text-primary font-headline font-black text-4xl tracking-tighter">Hoje, 12 Abr</h2>
+</section>
+<!-- Next Session Call to Action (Bento Style) -->
+<section class="bg-surface-container-low p-8 rounded-[2rem] relative overflow-hidden">
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4">
+<span class="inline-block w-3 h-3 bg-secondary-container rounded-full animate-pulse"></span>
+<span class="text-secondary font-bold uppercase text-xs tracking-widest">Próximo Aluno</span>
+</div>
+<div class="flex justify-between items-end mb-8">
+<div>
+<h3 class="text-3xl font-black text-primary leading-none">Lucas Andrade</h3>
+<p class="text-on-surface-variant mt-2 font-medium">Foco: Hipertrofia MMII</p>
+</div>
+<div class="text-right">
+<span class="text-primary text-4xl font-black block">08:00</span>
+</div>
+</div>
+<button class="w-full h-16 bg-gradient-to-b from-primary to-primary-container text-on-primary rounded-full font-bold text-lg flex items-center justify-center gap-3 active:scale-95 transition-transform duration-200 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" data-icon="play_circle" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+                    Iniciar Sessão
+                </button>
+</div>
+<!-- Decorative Abstract Shape -->
+<div class="absolute -right-8 -top-8 w-40 h-40 bg-secondary-container opacity-20 rounded-full blur-3xl"></div>
+</section>
+<!-- Vertical Timeline of Students -->
+<section class="relative">
+<div class="timeline-track opacity-30"></div>
+<div class="space-y-12">
+<!-- Student 1 (Done) -->
+<div class="relative pl-14">
+<div class="absolute left-0 top-0 w-11 h-11 bg-primary rounded-full flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-white text-xl" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="bg-surface-container-highest/30 p-6 rounded-xl flex items-center justify-between border-l-4 border-primary">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full overflow-hidden grayscale">
+<img alt="Student" data-alt="Close-up headshot of a middle-aged man with athletic features in a gym setting, monochrome filter" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBb34rx2Q133Ya8NEL3uysXbPl-YkfU3gEJSM6F2Nm-NaYwqJ7Xy3TqHm5ukwvPj8udEWgPGNyJaoiqqXbt6O_PO-Swl56V30D5YgW2utifpSEn_bq3WA6UzPw4Flcx2iurMMxskJuhZZ-wTv6teCkn4Ow3LBrTAC7gIdOimTOoaV13FQD3iqhSh-7ss5lqoB2tkwtkLebvJIcjpC5NRNERDfQv3AKFlJBm8AaCoHb_tJek03cEB3_Mw3MpImoCdvQFt6JD2wmNimzI"/>
+</div>
+<div>
+<h4 class="font-headline font-bold text-lg text-primary opacity-60">Carlos Mendes</h4>
+<p class="text-on-surface-variant text-sm font-medium uppercase tracking-tighter">07:00 • Concluído</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary/40" data-icon="sticky_note_2">sticky_note_2</span>
+</div>
+</div>
+<!-- Student 2 (Active/Next) - Highlighted -->
+<div class="relative pl-14">
+<div class="absolute left-0 top-0 w-11 h-11 bg-secondary-container rounded-full flex items-center justify-center z-10 shadow-[0_0_20px_rgba(0,204,249,0.4)]">
+<span class="material-symbols-outlined text-on-secondary-container text-xl" data-icon="timer">timer</span>
+</div>
+<div class="bg-surface-container p-6 rounded-xl shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-full overflow-hidden ring-4 ring-secondary-container">
+<img alt="Student" data-alt="Young athletic man smiling, studio lighting, wearing fitness gear, clean profile shot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDd75OiJcKKXmyKMrmNJEXzm-Qmle3ObH_fNQ9CC5rpf2mAWqO3qGzWCR6VSjIrGS5uOyPa_ByITVCV4V-QdYSF571p190JMa4Dk8RfbUid8hNpJLIgdOFPbzfXKQO55zm8KvfacFpuqF2vRnUWDj7a_SvPNVRLMlIxbD3u2E5M7G3qcHa7DKkazbTTdj16dhNPIJ8IkfRa3jfIIMWQqGc1A8Wj-m5hfT70-ZadGLmZFO0p_4z-7WnzMqA89FXefudTvNjGQYk0sJkP"/>
+</div>
+<div>
+<h4 class="font-headline font-bold text-xl text-primary">Lucas Andrade</h4>
+<div class="flex gap-1 mt-1">
+<span class="bg-secondary/10 text-secondary text-[10px] font-black px-2 py-0.5 rounded-full uppercase">Perna</span>
+<span class="bg-primary/10 text-primary text-[10px] font-black px-2 py-0.5 rounded-full uppercase">Hipertrofia</span>
+</div>
+</div>
+</div>
+<span class="text-secondary font-black text-lg">08:00</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-3 bg-surface-container-lowest rounded-full text-xs font-black uppercase text-primary border border-outline-variant/20 hover:bg-white transition-colors">Notas</button>
+<button class="flex-1 py-3 bg-secondary-container rounded-full text-xs font-black uppercase text-on-secondary-container shadow-sm active:scale-95 transition-transform">Ver Treino</button>
+</div>
+</div>
+</div>
+<!-- Student 3 (Pending) -->
+<div class="relative pl-14">
+<div class="absolute left-0 top-0 w-11 h-11 bg-surface-container-high rounded-full flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-outline text-xl" data-icon="schedule">schedule</span>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full overflow-hidden">
+<img alt="Student" data-alt="Portrait of a woman in sportswear, natural lighting, fitness studio environment, focused expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBq15XRw_aDF12AZx2R6l18t_pic-yHcptcNoQYhkXhBBFP3qih5zv74oWxVQydqWrVRP5ce2zFIPFFxAcC3jyhwtyH9No3kX9n8sh_ZeoYWdIC7h45E6NCWjKIIA7ceIjLSgo1UTydmMY9DJTPzqZAsJLXOWIsLgCiwLXO-ZyMqSLh6ZXhkM8Sea5OHgGLzlwwk7k8Iwk0HLSdMVEHXrEeVYmhVjzWCX_vjnfWvXQARIwwUNU0VaDAZlxOtDZJ5J1QM3fxnMHJavKA"/>
+</div>
+<div>
+<h4 class="font-headline font-bold text-lg text-primary">Mariana Costa</h4>
+<p class="text-on-surface-variant text-sm font-medium uppercase tracking-tighter">09:30 • Pendente</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="more_vert">more_vert</span>
+</div>
+</div>
+<!-- Student 4 (Pending) -->
+<div class="relative pl-14">
+<div class="absolute left-0 top-0 w-11 h-11 bg-surface-container-high rounded-full flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-outline text-xl" data-icon="schedule">schedule</span>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full overflow-hidden">
+<img alt="Student" data-alt="Athletic man in gym attire, warm lighting, professional headshot with soft background focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjla87-BU3D6CW2urciExX7YXmyvcoEQUI3M_C1fvMUxZKKKJKbVvfdvtpnNQcX8D7h_-6Z-wMgEyNeOnY9pr4H9zBBwKBkcBC5n7qOpt0Z9KrsVdtbkLXOtWk0iv_8rH0Zg_JNxoRtuhMRZivpf3JYNdtcn0xWjLS1ZdFVgAdrW3ted3mra5ObscyhsVlrvOhCOGuuf8jz_yrWLhaJPo9Ixpk64ikU8R5wADNSWcbYcG_fd7yjTj1VBSkVZq2hNc5oEZ61THi5wex"/>
+</div>
+<div>
+<h4 class="font-headline font-bold text-lg text-primary">Roberto Silva</h4>
+<p class="text-on-surface-variant text-sm font-medium uppercase tracking-tighter">11:00 • Pendente</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="more_vert">more_vert</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#fbf8ff] dark:bg-[#1a1b22] fixed bottom-0 w-full z-50 rounded-t-[2rem] border-t border-[#c5c5d5]/15 shadow-[0_-4px_24px_rgba(0,19,89,0.04)]">
+<!-- Dashboard (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#00ccf9] dark:bg-[#00677f] text-[#001359] dark:text-white rounded-full px-5 py-2 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-widest mt-1">Dashboard</span>
+</a>
+<!-- Alunos -->
+<a class="flex flex-col items-center justify-center text-[#444652] dark:text-[#c5c5d5] px-5 py-2 hover:text-[#001359] dark:hover:text-[#b9c3ff] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-widest mt-1">Alunos</span>
+</a>
+<!-- Treinos -->
+<a class="flex flex-col items-center justify-center text-[#444652] dark:text-[#c5c5d5] px-5 py-2 hover:text-[#001359] dark:hover:text-[#b9c3ff] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="fitness_center">fitness_center</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-widest mt-1">Treinos</span>
+</a>
+<!-- Perfil -->
+<a class="flex flex-col items-center justify-center text-[#444652] dark:text-[#c5c5d5] px-5 py-2 hover:text-[#001359] dark:hover:text-[#b9c3ff] active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-widest mt-1">Perfil</span>
+</a>
+</nav>
+</body></html>
