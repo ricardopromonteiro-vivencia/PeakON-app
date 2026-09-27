@@ -15,6 +15,7 @@ import LogPhoto from './pages/LogPhoto';
 import AdminDashboard from './pages/AdminDashboard';
 import WorkoutManager from './pages/WorkoutManager';
 import Agenda from './pages/Agenda';
+import ClientDashboard from './pages/ClientDashboard';
 
 export default function App() {
   const { session, userProfile, setSession } = useAppStore();
@@ -63,12 +64,12 @@ export default function App() {
 
             {role === 'client' && (
               <>
-                <Route path="/my-timeline" element={<div className="font-bold text-center mt-20">Timeline de Aluno em construção!</div>} />
+                <Route path="/" element={<ClientDashboard />} />
                 <Route path="/agenda" element={<Agenda />} />
               </>
             )}
 
-            <Route path="*" element={<Navigate to={role === 'admin' ? '/admin' : role === 'pt' ? '/' : '/my-timeline'} replace />} />
+            <Route path="*" element={<Navigate to={role === 'admin' ? '/admin' : role === 'pt' ? '/' : '/'} replace />} />
           </Route>
         ) : (
           <>

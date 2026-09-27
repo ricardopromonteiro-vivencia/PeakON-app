@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getClientById, getClientTimeline } from '../lib/api';
 import TimelineItem from '../components/TimelineItem';
+import PackManager from '../components/packs/PackManager';
+import PackTransactions from '../components/packs/PackTransactions';
 
 export default function ClientProfile() {
   const { id } = useParams();
@@ -9,6 +11,7 @@ export default function ClientProfile() {
   const [client, setClient] = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('timeline'); // 'timeline' | 'pack' | 'history'
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
@@ -188,7 +191,7 @@ export default function ClientProfile() {
         </div>
       )}
 
-      {/* Quick Actions (max 3 taps rules!) */}
+      {/* Quick Actions */}
       <div className="flex gap-3">
         <button onClick={() => navigate(`/client/${id}/workout`)} className="flex-1 py-4 bg-primary text-on-primary rounded-[1.2rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-transform flex flex-col items-center justify-center gap-2">
           <span className="material-symbols-outlined text-3xl">fitness_center</span>
@@ -204,30 +207,57 @@ export default function ClientProfile() {
         </button>
       </div>
 
-      {/* Timeline Section */}
-      <section className="relative pt-6">
-        <div className="flex items-center gap-2 mb-8">
-          <span className="inline-block w-3 h-3 bg-secondary-container rounded-full animate-pulse"></span>
-          <h3 className="text-primary font-bold uppercase text-xs tracking-widest">Timeline de Evolução</h3>
-        </div>
-        
-        <div className="timeline-track opacity-20"></div>
-        <div className="space-y-6">
-          {timeline.length === 0 ? (
-            <div className="pl-12">
-              <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/10 shadow-sm text-center">
-                <span className="material-symbols-outlined text-4xl text-outline mb-2">history</span>
-                <p className="text-primary font-bold">Nenhum registo ainda</p>
-                <p className="text-on-surface-variant text-sm mt-1">Adiciona o primeiro treino ou peso para popular a timeline.</p>
+      {/* Tabs: Timeline / Pack / Histórico */}
+      <div className="flex gap-2 bg-surface-container rounded-2xl p-1.5">
+        {[
+          { key: 'timeline', label: 'Timeline',  icon: 'history' },
+          { key: 'pack',     label: 'Pack',       icon: 'confirmation_number' },
+          { key: 'history',  label: 'Histórico',  icon: 'receipt_long' },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest flex flex-col items-center gap-1 transition-all ${
+              activeTab === tab.key
+                ? 'bg-surface text-primary shadow-sm'
+                : 'text-on-surface-variant opacity-60'
+            }`}
+          >
+            <span className="material-symbols-outlined text-lg">{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Conteúdo da tab ativa */}
+      {activeTab === 'timeline' && (
+        <section className="relative pt-2">
+          <div className="timeline-track opacity-20"></div>
+          <div className="space-y-6">
+            {timeline.length === 0 ? (
+              <div className="pl-12">
+                <div className="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/10 shadow-sm text-center">
+                  <span className="material-symbols-outlined text-4xl text-outline mb-2">history</span>
+                  <p className="text-primary font-bold">Nenhum registo ainda</p>
+                  <p className="text-on-surface-variant text-sm mt-1">Adiciona o primeiro treino ou peso para popular a timeline.</p>
+                </div>
               </div>
-            </div>
-          ) : (
-            timeline.map((item) => (
-              <TimelineItem key={`${item.type}-${item.id}`} item={item} />
-            ))
-          )}
-        </div>
-      </section>
+            ) : (
+              timeline.map((item) => (
+                <TimelineItem key={`${item.type}-${item.id}`} item={item} />
+              ))
+            )}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'pack' && (
+        <PackManager clientId={id} />
+      )}
+
+      {activeTab === 'history' && (
+        <PackTransactions clientId={id} />
+      )}
     </div>
   );
 }
