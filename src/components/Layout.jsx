@@ -33,6 +33,10 @@ export default function Layout() {
                 <span className="material-symbols-outlined text-lg">gavel</span> Termos &amp; Privacidade
               </button>
               <div className="h-[1px] w-full bg-outline-variant/20"></div>
+              <button onClick={() => { setMenuOpen(false); navigate('/help'); }} className="flex items-center gap-3 w-full p-4 text-sm font-bold text-on-surface hover:bg-surface-container transition-colors">
+                <span className="material-symbols-outlined text-lg">help</span> Ajuda &amp; Suporte
+              </button>
+              <div className="h-[1px] w-full bg-outline-variant/20"></div>
               <button onClick={() => { setMenuOpen(false); signOut(); }} className="flex items-center gap-3 w-full p-4 text-sm font-bold text-error hover:bg-error-container hover:text-on-error-container transition-colors">
                 <span className="material-symbols-outlined text-lg">logout</span> Sair da Conta
               </button>

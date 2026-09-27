@@ -20,6 +20,7 @@ import Profile from './pages/Profile';
 import AdminPTView from './pages/AdminPTView';
 import AdminClientView from './pages/AdminClientView';
 import Terms from './pages/Terms';
+import Help from './pages/Help';
 
 export default function App() {
   const { session, userProfile, setSession } = useAppStore();
@@ -80,6 +81,7 @@ export default function App() {
                 <Route path="/admin/pt/:ptId/client/:clientId" element={<AdminClientView />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/help" element={<Help />} />
               </>
             )}
             
@@ -95,6 +97,7 @@ export default function App() {
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/help" element={<Help />} />
               </>
             )}
 
@@ -104,6 +107,7 @@ export default function App() {
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/help" element={<Help />} />
               </>
             )}
 
