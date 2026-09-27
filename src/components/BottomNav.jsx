@@ -9,7 +9,9 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md flex justify-around items-center px-4 pb-6 pt-3 bg-surface z-50 rounded-t-[2rem] border-t border-outline-variant/15 shadow-[0_-4px_24px_rgba(0,19,89,0.04)]">
       {role === 'admin' && (
-        <NavItem to="/admin" icon="admin_panel_settings" label="Global" />
+        <>
+          <NavItem to="/admin" icon="admin_panel_settings" label="Global" />
+        </>
       )}
       {role === 'pt' && (
         <>
@@ -20,7 +22,7 @@ export default function BottomNav() {
       )}
       {role === 'client' && (
         <>
-          <NavItem to="/my-timeline" icon="timeline" label="Evolução" />
+          <NavItem to="/" icon="confirmation_number" label="Pack" />
           <NavItem to="/agenda" icon="calendar_month" label="Agenda" />
         </>
       )}

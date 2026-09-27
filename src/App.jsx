@@ -16,6 +16,10 @@ import AdminDashboard from './pages/AdminDashboard';
 import WorkoutManager from './pages/WorkoutManager';
 import Agenda from './pages/Agenda';
 import ClientDashboard from './pages/ClientDashboard';
+import Profile from './pages/Profile';
+import AdminPTView from './pages/AdminPTView';
+import AdminClientView from './pages/AdminClientView';
+import Terms from './pages/Terms';
 
 export default function App() {
   const { session, userProfile, setSession } = useAppStore();
@@ -38,6 +42,30 @@ export default function App() {
     return <div className="min-h-screen flex items-center justify-center font-bold text-primary bg-surface animate-pulse">A carregar perfil...</div>;
   }
 
+  // Conta suspensa — mostra ecrã de bloqueio e faz logout
+  if (session && userProfile?.status === 'suspended') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface-container-low px-6 max-w-md mx-auto text-center">
+        <div className="w-20 h-20 bg-error/10 rounded-[2rem] flex items-center justify-center mb-6">
+          <span className="material-symbols-outlined text-error text-4xl">block</span>
+        </div>
+        <h2 className="text-2xl font-black text-primary font-headline tracking-tighter mb-3">
+          Conta Suspensa
+        </h2>
+        <p className="text-on-surface-variant text-sm leading-relaxed mb-8">
+          A tua conta foi suspensa. Para mais informações contacta o administrador em{' '}
+          <a href="mailto:peakon.app@gmail.com" className="text-primary font-bold">peakon.app@gmail.com</a>.
+        </p>
+        <button
+          onClick={() => useAppStore.getState().signOut()}
+          className="w-full bg-primary text-on-primary rounded-full font-bold py-4 active:scale-95 transition-transform"
+        >
+          Sair
+        </button>
+      </div>
+    );
+  }
+
   const role = userProfile?.role || 'client';
 
   return (
@@ -46,7 +74,13 @@ export default function App() {
         {session ? (
           <Route element={<Layout />}>
             {role === 'admin' && (
-              <Route path="/admin" element={<AdminDashboard />} />
+              <>
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/pt/:ptId" element={<AdminPTView />} />
+                <Route path="/admin/pt/:ptId/client/:clientId" element={<AdminClientView />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/terms" element={<Terms />} />
+              </>
             )}
             
             {role === 'pt' && (
@@ -59,6 +93,8 @@ export default function App() {
                 <Route path="/client/:id/photo" element={<LogPhoto />} />
                 <Route path="/workouts" element={<WorkoutManager />} />
                 <Route path="/agenda" element={<Agenda />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/terms" element={<Terms />} />
               </>
             )}
 
@@ -66,6 +102,8 @@ export default function App() {
               <>
                 <Route path="/" element={<ClientDashboard />} />
                 <Route path="/agenda" element={<Agenda />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/terms" element={<Terms />} />
               </>
             )}
 

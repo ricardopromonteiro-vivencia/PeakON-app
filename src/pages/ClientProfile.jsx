@@ -207,17 +207,18 @@ export default function ClientProfile() {
         </button>
       </div>
 
-      {/* Tabs: Timeline / Pack / Histórico */}
-      <div className="flex gap-2 bg-surface-container rounded-2xl p-1.5">
+      {/* Tabs: Timeline / Pack / Histórico / Convite */}
+      <div className="flex gap-2 bg-surface-container rounded-2xl p-1.5 overflow-x-auto">
         {[
           { key: 'timeline', label: 'Timeline',  icon: 'history' },
           { key: 'pack',     label: 'Pack',       icon: 'confirmation_number' },
           { key: 'history',  label: 'Histórico',  icon: 'receipt_long' },
+          { key: 'invite',   label: 'Convite',    icon: 'key' },
         ].map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest flex flex-col items-center gap-1 transition-all ${
+            className={`flex-1 min-w-[4.5rem] py-3 rounded-xl font-black text-[10px] uppercase tracking-widest flex flex-col items-center gap-1 transition-all ${
               activeTab === tab.key
                 ? 'bg-surface text-primary shadow-sm'
                 : 'text-on-surface-variant opacity-60'
@@ -258,6 +259,109 @@ export default function ClientProfile() {
       {activeTab === 'history' && (
         <PackTransactions clientId={id} />
       )}
+
+      {activeTab === 'invite' && (
+        <InviteCard client={client} />
+      )}
+    </div>
+  );
+}
+
+// ─── Card de convite (recuperar código a qualquer momento) ────
+function InviteCard({ client }) {
+  const [copied, setCopied] = useState(false);
+
+  const shareUrl  = `${window.location.origin}/login`;
+  const shareText = `Olá ${client.name}! 👋\nO teu Personal Trainer criou o teu perfil no PeakON. 🚀\n\nLink da App: ${shareUrl}\nO teu Código de Acesso: *${client.invite_code}*\n\nBora treinar! 🔥`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(client.invite_code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (!client.invite_code) {
+    return (
+      <div className="bg-surface-container-low rounded-[2rem] p-6 border border-outline-variant/10 text-center">
+        <span className="material-symbols-outlined text-4xl text-outline mb-2 block">key_off</span>
+        <p className="text-primary font-bold">Sem código de convite</p>
+        <p className="text-on-surface-variant text-sm mt-1">Este aluno não tem código de convite associado.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary">key</span>
+        <h3 className="text-primary font-bold uppercase text-xs tracking-widest">Código de Convite</h3>
+      </div>
+
+      {/* Código em destaque */}
+      <div className="bg-surface-container-high rounded-[2rem] p-6 border border-primary/10 shadow-inner relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-3 pointer-events-none">
+          <span className="material-symbols-outlined text-primary/10 text-6xl -rotate-12">key</span>
+        </div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-primary/60 mb-2">Código de Acesso</p>
+        <p className="text-5xl font-black text-primary tracking-[0.2em] font-headline">{client.invite_code}</p>
+        <p className="text-on-surface-variant text-xs mt-3">
+          O aluno usa este código ao criar a conta na app.
+        </p>
+        {client.is_registered && (
+          <span className="inline-flex items-center gap-1 mt-3 bg-[#1a7f64]/10 text-[#1a7f64] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+            <span className="material-symbols-outlined text-sm">check_circle</span>
+            Aluno já registado
+          </span>
+        )}
+        {!client.is_registered && (
+          <span className="inline-flex items-center gap-1 mt-3 bg-[#f5a623]/10 text-[#b87516] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+            <span className="material-symbols-outlined text-sm">pending</span>
+            Aguarda registo
+          </span>
+        )}
+      </div>
+
+      {/* Ações */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={handleCopy}
+          className={`flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-sm active:scale-95 transition-all border ${
+            copied
+              ? 'bg-[#1a7f64]/10 text-[#1a7f64] border-[#1a7f64]/20'
+              : 'bg-surface-container text-primary border-outline-variant/20'
+          }`}
+        >
+          <span className="material-symbols-outlined text-xl">
+            {copied ? 'check' : 'content_copy'}
+          </span>
+          {copied ? 'Copiado!' : 'Copiar Código'}
+        </button>
+        <button
+          onClick={handleWhatsApp}
+          className="flex items-center justify-center gap-2 bg-[#25D366] text-white py-4 rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg shadow-[#25d366]/20"
+        >
+          <span className="material-symbols-outlined text-xl">share</span>
+          WhatsApp
+        </button>
+      </div>
+
+      <button
+        onClick={handleCopyLink}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest text-on-surface-variant bg-surface-container border border-outline-variant/10 active:scale-95 transition-all"
+      >
+        <span className="material-symbols-outlined text-lg">link</span>
+        Copiar mensagem completa
+      </button>
     </div>
   );
 }

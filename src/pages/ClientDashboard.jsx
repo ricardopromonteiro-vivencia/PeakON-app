@@ -16,22 +16,22 @@ export default function ClientDashboard() {
   useEffect(() => {
     async function loadClientData() {
       try {
-        // Encontra o registo do aluno pelo supabase_uid
-        const { data: clientRow, error: clientErr } = await supabase
-          .from('clients')
-          .select('id')
-          .eq('supabase_uid', user.id)
+        // Encontra o registo do aluno via users.linked_client_id
+        const { data: userRow, error: userErr } = await supabase
+          .from('users')
+          .select('linked_client_id')
+          .eq('id', user.id)
           .maybeSingle();
 
-        if (clientErr) throw clientErr;
-        if (!clientRow) {
+        if (userErr) throw userErr;
+        if (!userRow?.linked_client_id) {
           setError('A tua conta de aluno ainda não foi associada. Fala com o teu PT.');
           setLoading(false);
           return;
         }
 
-        setClientId(clientRow.id);
-        const packData = await getClientPack(clientRow.id);
+        setClientId(userRow.linked_client_id);
+        const packData = await getClientPack(userRow.linked_client_id);
         setPack(packData);
       } catch (e) {
         setError('Erro ao carregar dados: ' + e.message);

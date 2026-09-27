@@ -71,12 +71,12 @@ CREATE POLICY "pt_manage_packs" ON client_packs
   WITH CHECK (pt_id = auth.uid());
 
 -- Aluno vê apenas o seu próprio pack
--- (assume que users.supabase_uid liga o auth.uid() ao registo do aluno)
+-- (usa users.linked_client_id para ligar auth.uid() ao registo do aluno)
 CREATE POLICY "client_view_own_pack" ON client_packs
   FOR SELECT
   USING (
     client_id IN (
-      SELECT id FROM clients WHERE supabase_uid = auth.uid()
+      SELECT linked_client_id FROM users WHERE id = auth.uid()
     )
   );
 
@@ -91,7 +91,7 @@ CREATE POLICY "client_view_own_transactions" ON pack_transactions
   FOR SELECT
   USING (
     client_id IN (
-      SELECT id FROM clients WHERE supabase_uid = auth.uid()
+      SELECT linked_client_id FROM users WHERE id = auth.uid()
     )
   );
 
