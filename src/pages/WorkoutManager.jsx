@@ -27,6 +27,7 @@ export default function WorkoutManager() {
   const [selectedExId, setSelectedExId] = useState('');
   const [exSets, setExSets] = useState(3);
   const [exReps, setExReps] = useState('10 to 12');
+  const [exRefWeight, setExRefWeight] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -94,7 +95,12 @@ export default function WorkoutManager() {
     e.preventDefault();
     if (!selectedExId) return;
     const { data } = await supabase.from('workout_plan_exercises').insert([{
-      plan_id: editingPlan.id, exercise_id: selectedExId, sets: exSets, reps: exReps, sort_order: planExercises.length
+      plan_id: editingPlan.id,
+      exercise_id: selectedExId,
+      sets: exSets,
+      reps: exReps,
+      reference_weight: exRefWeight !== '' ? parseFloat(exRefWeight) : null,
+      sort_order: planExercises.length
     }]).select('*, exercises(name, category)').single();
     
     if (data) {
@@ -103,6 +109,7 @@ export default function WorkoutManager() {
       setSelectedExId('');
       setExSets(3);
       setExReps('10 to 12');
+      setExRefWeight('');
     }
   };
 
@@ -128,12 +135,18 @@ export default function WorkoutManager() {
           ) : (
             planExercises.map((pex, index) => (
               <div key={pex.id} className="bg-surface p-4 rounded-[1.2rem] shadow-sm border border-outline-variant/20 flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-black text-[#00677f] uppercase block mb-1">Passo {index + 1} - {pex.exercises?.category}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs font-black text-[#00677f] uppercase block mb-1">Passo {index + 1} · {pex.exercises?.category}</span>
                   <p className="font-bold text-on-surface text-lg leading-tight">{pex.exercises?.name}</p>
+                  {pex.reference_weight != null && (
+                    <span className="inline-flex items-center gap-1 mt-1 bg-primary/10 text-primary text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide">
+                      <span className="material-symbols-outlined text-sm">fitness_center</span>
+                      Ref: {pex.reference_weight} kg
+                    </span>
+                  )}
                 </div>
-                <div className="text-right ml-4 min-w-[70px]">
-                  <p className="font-black text-primary text-xl bg-surface-container px-3 auto py-1 rounded-lg inline-block">{pex.sets}x</p>
+                <div className="text-right ml-4 min-w-[70px] flex-shrink-0">
+                  <p className="font-black text-primary text-xl bg-surface-container px-3 py-1 rounded-lg inline-block">{pex.sets}x</p>
                   <p className="text-[10px] uppercase font-bold text-on-surface-variant mt-1 tracking-widest">{pex.reps} reps</p>
                 </div>
               </div>
@@ -169,6 +182,24 @@ export default function WorkoutManager() {
                 <label className="text-[10px] font-bold text-primary uppercase block pl-2 mb-1">Repetições Alvo</label>
                 <input type="text" value={exReps} onChange={e => setExReps(e.target.value)} placeholder="Ex: Até Falha" className="w-full bg-surface border border-outline-variant/30 rounded-xl px-4 py-3 font-bold text-on-surface" />
               </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-primary uppercase block pl-2 mb-1">Carga de Referência (kg)</label>
+              <div className="flex items-center gap-2 bg-surface border border-outline-variant/30 rounded-xl px-4 py-3">
+                <span className="material-symbols-outlined text-primary/60 text-lg">fitness_center</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={exRefWeight}
+                  onChange={e => setExRefWeight(e.target.value)}
+                  placeholder="Ex: 50 (opcional)"
+                  className="flex-1 bg-transparent font-bold text-on-surface focus:outline-none"
+                />
+                <span className="text-on-surface-variant font-bold text-sm">kg</span>
+              </div>
+              <p className="text-[10px] text-on-surface-variant/50 ml-2 mt-1">Peso recomendado pelo PT. O aluno pode registar o peso que realmente atingiu.</p>
             </div>
 
             <div className="flex gap-2 pt-2">

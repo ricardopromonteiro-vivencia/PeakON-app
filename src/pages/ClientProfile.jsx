@@ -1,44 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getClientById, getClientTimeline } from '../lib/api';
+import { supabase } from '../lib/supabase';
 import TimelineItem from '../components/TimelineItem';
 import PackManager from '../components/packs/PackManager';
 import PackTransactions from '../components/packs/PackTransactions';
+import ClientPlan from '../components/plan/ClientPlan';
+import PlanManager from '../components/plan/PlanManager';
 
 export default function ClientProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [client, setClient] = useState(null);
+  const [client, setClient]   = useState(null);
   const [timeline, setTimeline] = useState([]);
+  const [planEntries, setPlanEntries] = useState([]); // planos atribuídos
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('timeline'); // 'timeline' | 'pack' | 'history'
+  const [activeTab, setActiveTab] = useState('timeline');
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editGoal, setEditGoal] = useState('');
+  const [isEditing, setIsEditing]   = useState(false);
+  const [editName, setEditName]     = useState('');
+  const [editGoal, setEditGoal]     = useState('');
   const [saveLoading, setSaveLoading] = useState(false);
 
-  const [assigningPlan, setAssigningPlan] = useState(false);
-  const [ptPlans, setPtPlans] = useState([]);
-  const [selectedPlanId, setSelectedPlanId] = useState('');
-
-  const fetchPlans = async () => {
-     const { supabase } = await import('../lib/supabase');
-     const { data } = await supabase.from('workout_plans').select('*').order('created_at', { ascending: false });
-     setPtPlans(data || []);
-  };
-
-  const handleAssignPlan = async () => {
-    if (!selectedPlanId) return;
-    const planIdToSave = selectedPlanId === 'none' ? null : selectedPlanId;
-    const { supabase } = await import('../lib/supabase');
-    await supabase.from('clients').update({ active_plan_id: planIdToSave }).eq('id', id);
-    
-    // Refresh client
-    const updatedClient = await getClientById(id);
-    setClient(updatedClient);
-    setAssigningPlan(false);
-    setSelectedPlanId('');
+  const loadPlanEntries = async () => {
+    const { data } = await supabase
+      .from('client_plans')
+      .select('*, workout_plans(id, name, description)')
+      .eq('client_id', id)
+      .order('sort_order');
+    setPlanEntries(data || []);
   };
 
   const handleDeleteClient = async () => {
@@ -80,7 +70,10 @@ export default function ClientProfile() {
         setClient(c);
         setEditName(c.name);
         setEditGoal(c.goal || '');
-        const t = await getClientTimeline(id);
+        const [t] = await Promise.all([
+          getClientTimeline(id),
+          loadPlanEntries(),
+        ]);
         setTimeline(t);
       } catch (e) {
         console.error(e);
@@ -165,31 +158,28 @@ export default function ClientProfile() {
         </button>
       </div>
 
-      {assigningPlan ? (
-        <div className="bg-surface-container rounded-[2rem] p-5 mb-6 border border-primary/20 shadow-sm animate-pulse-slight">
-           <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-3">Atribuir Novo Plano</p>
-           <div className="flex gap-2">
-             <select className="flex-1 bg-surface py-3 px-3 rounded-xl text-xs font-bold border border-outline-variant/30 text-primary uppercase" value={selectedPlanId} onChange={(e) => setSelectedPlanId(e.target.value)}>
-               <option value="" disabled>Selecionar da Biblioteca...</option>
-               <option value="none">Nenhum (Remover Atual)</option>
-               {ptPlans.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-             </select>
-             <button onClick={handleAssignPlan} disabled={!selectedPlanId} className="bg-primary text-on-primary px-4 py-3 rounded-xl font-bold text-xs uppercase disabled:opacity-50">Gravar</button>
-           </div>
+      {/* Resumo de planos — clica para ir à tab Plano */}
+      <button
+        onClick={() => setActiveTab('plano')}
+        className="w-full bg-surface rounded-[2rem] p-5 border-2 border-dashed border-outline-variant/30 hover:border-primary/20 transition-colors flex items-center justify-between"
+      >
+        <div>
+          <p className="text-[10px] font-black uppercase text-on-surface-variant tracking-widest mb-1">Planos Atribuídos</p>
+          <p className="font-bold text-primary text-lg leading-none">
+            {planEntries.length === 0
+              ? 'Nenhum plano atribuído'
+              : planEntries.length === 1
+                ? planEntries[0].workout_plans?.name
+                : `${planEntries.length} planos`}
+          </p>
+          {planEntries.length > 1 && (
+            <p className="text-on-surface-variant text-xs mt-1">
+              {planEntries.map(p => p.label || p.workout_plans?.name).join(' · ')}
+            </p>
+          )}
         </div>
-      ) : (
-        <div className="bg-surface rounded-[2rem] p-5 mb-6 border-2 border-dashed border-outline-variant/30 hover:border-primary/20 transition-colors flex items-center justify-between">
-           <div>
-             <p className="text-[10px] font-black uppercase text-on-surface-variant tracking-widest mb-1">Plano Atual</p>
-             <p className="font-bold text-primary text-lg leading-none">
-               {client.workout_plans ? client.workout_plans.name : 'Sem Plano Atribuído'}
-             </p>
-           </div>
-           <button onClick={() => { setAssigningPlan(true); fetchPlans(); }} className="text-[#00677f] font-bold text-xs bg-[#00677f]/10 px-4 py-2 rounded-xl uppercase hover:bg-[#00677f]/20 transition-colors">
-             Alterar
-           </button>
-        </div>
-      )}
+        <span className="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+      </button>
 
       {/* Quick Actions */}
       <div className="flex gap-3">
@@ -198,8 +188,8 @@ export default function ClientProfile() {
           Treino
         </button>
         <button onClick={() => navigate(`/client/${id}/progress`)} className="flex-1 py-4 bg-secondary-container text-on-secondary-container rounded-[1.2rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-secondary-container/20 active:scale-95 transition-transform flex flex-col items-center justify-center gap-2">
-          <span className="material-symbols-outlined text-3xl">scale</span>
-          Peso
+          <span className="material-symbols-outlined text-3xl">straighten</span>
+          Evolução
         </button>
         <button onClick={() => navigate(`/client/${id}/photo`)} className="flex-1 py-4 bg-surface-container-high text-primary border border-outline-variant/10 rounded-[1.2rem] font-black text-xs uppercase tracking-widest shadow-sm active:scale-95 transition-transform flex flex-col items-center justify-center gap-2">
           <span className="material-symbols-outlined text-3xl">add_a_photo</span>
@@ -207,10 +197,11 @@ export default function ClientProfile() {
         </button>
       </div>
 
-      {/* Tabs: Timeline / Pack / Histórico / Convite */}
+      {/* Tabs: Timeline / Pack / Histórico / Convite / Plano */}
       <div className="flex gap-2 bg-surface-container rounded-2xl p-1.5 overflow-x-auto">
         {[
           { key: 'timeline', label: 'Timeline',  icon: 'history' },
+          { key: 'plano',    label: 'Plano',     icon: 'assignment' },
           { key: 'pack',     label: 'Pack',       icon: 'confirmation_number' },
           { key: 'history',  label: 'Histórico',  icon: 'receipt_long' },
           { key: 'invite',   label: 'Convite',    icon: 'key' },
@@ -250,6 +241,25 @@ export default function ClientProfile() {
             )}
           </div>
         </section>
+      )}
+
+      {activeTab === 'plano' && (
+        <>
+          <PlanManager
+            clientId={id}
+            onChanged={() => {
+              loadPlanEntries();
+              getClientTimeline(id).then(setTimeline);
+            }}
+          />
+          {planEntries.length > 0 && (
+            <ClientPlan
+              clientId={id}
+              planEntries={planEntries}
+              readOnly={true}
+            />
+          )}
+        </>
       )}
 
       {activeTab === 'pack' && (
