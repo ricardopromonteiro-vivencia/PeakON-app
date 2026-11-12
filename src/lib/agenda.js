@@ -215,3 +215,73 @@ export function timeToMinutes(time) {
   const [h, m] = time.split(':').map(Number);
   return h * 60 + m;
 }
+
+// ─── AGENDAMENTO DIRETO PELO PT ────────────────────────────
+
+/**
+ * PT agenda um aluno diretamente — cria booking com status 'approved' imediatamente.
+ * Suporta múltiplos alunos no mesmo slot (aula de grupo).
+ */
+export async function createBookingByPT(ptId, { availabilityId, clientId, bookingDate, startTime, endTime, notes }) {
+  const { data, error } = await supabase
+    .from('bookings')
+    .insert([{
+      availability_id: availabilityId,
+      pt_id:           ptId,
+      client_id:       clientId,
+      booking_date:    bookingDate,
+      start_time:      startTime,
+      end_time:        endTime,
+      notes:           notes || null,
+      status:          'approved',
+      booked_by_pt:    true,
+    }])
+    .select('*, clients(name, photo_url)')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Remove um booking (PT cancela uma marcação que ele próprio criou).
+ */
+export async function removeBooking(bookingId) {
+  const { error } = await supabase
+    .from('bookings')
+    .delete()
+    .eq('id', bookingId);
+
+  if (error) throw error;
+}
+
+/**
+ * Busca todos os bookings de um slot específico com info do cliente.
+ * Inclui pending + approved (não rejected).
+ */
+export async function getSlotBookings(availabilityId) {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*, clients(id, name, photo_url)')
+    .eq('availability_id', availabilityId)
+    .in('status', ['pending', 'approved'])
+    .order('start_time', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Atualiza max_clients de um slot (para aulas de grupo).
+ */
+export async function updateSlotMaxClients(slotId, maxClients) {
+  const { data, error } = await supabase
+    .from('pt_availability')
+    .update({ max_clients: maxClients })
+    .eq('id', slotId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}

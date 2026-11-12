@@ -4,11 +4,13 @@ import CalendarView from '../components/agenda/CalendarView';
 import SlotModal from '../components/agenda/SlotModal';
 import BookingCard from '../components/agenda/BookingCard';
 import BookingRequestModal from '../components/agenda/BookingRequestModal';
+import PTBookingModal from '../components/agenda/PTBookingModal';
 import {
   getAvailabilityByMonth,
   getAvailabilityByDate,
   getBookingsByPT,
   getBookingsByClient,
+  getSlotBookings,
   deleteSlot,
   getPTIdForClientUser,
   getSessionConfig,
@@ -56,12 +58,14 @@ function PTAgenda({ user }) {
   const [sessionConfigs, setSessionConfigs] = useState([]);
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [activeTab, setActiveTab] = useState('calendar'); // 'calendar' | 'bookings' | 'config'
+  const [activeTab, setActiveTab] = useState('calendar');
   const [configClientId, setConfigClientId] = useState('');
   const [configMinutes, setConfigMinutes] = useState(60);
   const [savingConfig, setSavingConfig] = useState(false);
   const [configMsg, setConfigMsg] = useState('');
   const [deletingSlot, setDeletingSlot] = useState(null);
+  const [selectedSlotForBooking, setSelectedSlotForBooking] = useState(null); // slot para PTBookingModal
+  const [slotBookingCounts, setSlotBookingCounts] = useState({}); // { slotId: count }
 
   // Carregar disponibilidade do mês
   const loadMonthAvailability = useCallback(async () => {
@@ -78,6 +82,13 @@ function PTAgenda({ user }) {
     try {
       const data = await getAvailabilityByDate(user.id, selectedDate);
       setSlotsForDay(data);
+      // Carregar contagens de bookings para cada slot em paralelo
+      const counts = {};
+      await Promise.all(data.map(async slot => {
+        const bks = await getSlotBookings(slot.id);
+        counts[slot.id] = bks.length;
+      }));
+      setSlotBookingCounts(counts);
     } catch (e) { console.error(e); }
     finally { setLoadingSlots(false); }
   }, [user.id, selectedDate]);
@@ -234,38 +245,83 @@ function PTAgenda({ user }) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {slotsForDay.map(slot => (
-                    <div
-                      key={slot.id}
-                      className="flex items-center justify-between bg-surface-container rounded-[1.2rem] px-4 py-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-secondary text-xl">schedule</span>
-                        <div>
-                          <p className="font-bold text-on-surface text-sm">
-                            {formatTime(slot.start_time)} — {formatTime(slot.end_time)}
-                          </p>
-                          <p className="text-xs text-outline">
-                            {(() => {
-                              const [sh, sm] = slot.start_time.split(':').map(Number);
-                              const [eh, em] = slot.end_time.split(':').map(Number);
-                              return `${(eh * 60 + em) - (sh * 60 + sm)} min disponíveis`;
-                            })()}
-                          </p>
+                  {slotsForDay.map(slot => {
+                    const count    = slotBookingCounts[slot.id] || 0;
+                    const maxC     = slot.max_clients || 1;
+                    const isFull   = count >= maxC;
+                    const [sh, sm] = slot.start_time.split(':').map(Number);
+                    const [eh, em] = slot.end_time.split(':').map(Number);
+                    const mins = (eh * 60 + em) - (sh * 60 + sm);
+
+                    return (
+                      <div key={slot.id}
+                        className="bg-surface-container rounded-[1.2rem] border border-outline-variant/10 overflow-hidden">
+                        {/* Linha principal — clicável para abrir PTBookingModal */}
+                        <button
+                          onClick={() => setSelectedSlotForBooking(slot)}
+                          className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-container-high transition-colors text-left active:scale-[0.99]"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined text-secondary text-xl">schedule</span>
+                            <div>
+                              <p className="font-bold text-on-surface text-sm">
+                                {formatTime(slot.start_time)} — {formatTime(slot.end_time)}
+                              </p>
+                              <p className="text-xs text-outline">{mins} min disponíveis</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {/* Badge de ocupação */}
+                            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black ${
+                              isFull
+                                ? 'bg-error/10 text-error'
+                                : count > 0
+                                  ? 'bg-[#1a7f64]/10 text-[#1a7f64]'
+                                  : 'bg-surface-container-high text-on-surface-variant'
+                            }`}>
+                              <span className="material-symbols-outlined text-sm">group</span>
+                              {count}/{maxC}
+                            </div>
+                            <span className="material-symbols-outlined text-outline text-sm">chevron_right</span>
+                          </div>
+                        </button>
+
+                        {/* Chips dos alunos marcados */}
+                        {count > 0 && (
+                          <div className="px-4 pb-3 flex flex-wrap gap-1.5">
+                            {/* Placeholder — nomes carregados no PTBookingModal */}
+                            {Array.from({ length: count }).map((_, i) => (
+                              <span key={i}
+                                className="w-7 h-7 rounded-full bg-primary/20 text-primary font-black text-xs flex items-center justify-center">
+                                <span className="material-symbols-outlined text-sm">person</span>
+                              </span>
+                            ))}
+                            <button
+                              onClick={() => setSelectedSlotForBooking(slot)}
+                              className="text-[10px] font-black text-primary/70 hover:text-primary transition-colors ml-1 self-center uppercase tracking-wide"
+                            >
+                              gerir →
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Botão apagar slot */}
+                        <div className="px-4 pb-3 flex justify-end">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeleteSlot(slot.id); }}
+                            disabled={deletingSlot === slot.id}
+                            className="flex items-center gap-1 text-error/70 hover:text-error text-xs font-bold transition-colors disabled:opacity-40"
+                          >
+                            {deletingSlot === slot.id
+                              ? <span className="material-symbols-outlined animate-spin text-sm">sync</span>
+                              : <span className="material-symbols-outlined text-sm">delete</span>
+                            }
+                            Apagar slot
+                          </button>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteSlot(slot.id)}
-                        disabled={deletingSlot === slot.id}
-                        className="w-9 h-9 flex items-center justify-center rounded-full text-error hover:bg-error-container active:scale-90 transition-all disabled:opacity-40"
-                      >
-                        {deletingSlot === slot.id
-                          ? <span className="material-symbols-outlined animate-spin text-base">sync</span>
-                          : <span className="material-symbols-outlined text-base">delete</span>
-                        }
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -436,6 +492,21 @@ function PTAgenda({ user }) {
           date={selectedDate}
           onClose={() => setShowSlotModal(false)}
           onSlotCreated={handleSlotCreated}
+        />
+      )}
+
+      {/* Modal de gestão de marcações do slot */}
+      {selectedSlotForBooking && (
+        <PTBookingModal
+          slot={selectedSlotForBooking}
+          clients={clients}
+          sessionConfigs={sessionConfigs}
+          ptId={user.id}
+          onClose={() => setSelectedSlotForBooking(null)}
+          onChanged={() => {
+            loadDaySlots();
+            loadBookings();
+          }}
         />
       )}
     </div>

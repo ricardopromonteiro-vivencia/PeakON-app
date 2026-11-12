@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
-// ─── Logo PeakON (substitui BARBELL) ─────────────────────────
+// ─── Logo PeakON (PNG original) ──────────────────────────────
 function PeakONLogo({ size = 'lg' }) {
-  const dim = size === 'sm' ? 'w-16 h-16' : 'w-24 h-24';
-  const txt = size === 'sm' ? 'text-2xl' : 'text-4xl';
+  const dim = size === 'sm' ? 'w-20 h-20' : 'w-32 h-32';
   return (
-    <div className={`${dim} bg-primary text-on-primary rounded-[2rem] flex items-center justify-center shadow-2xl shadow-primary/20 flex-shrink-0`}>
-      <span className={`font-headline font-black ${txt} tracking-tighter leading-none`}>P</span>
+    <div className={`${dim} flex-shrink-0`}>
+      <img
+        src="/icon-512.png"
+        alt="PeakON"
+        className="w-full h-full object-contain drop-shadow-2xl"
+      />
     </div>
   );
 }

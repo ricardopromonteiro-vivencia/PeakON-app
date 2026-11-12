@@ -28,3 +28,13 @@
     backdrop-filter: blur(16px);
   }
 }
+
+/* Ocultar badge "Powered by Netlify" */
+[data-netlify-badge],
+.netlify-badge,
+a[href*="netlify.com"][target="_blank"]:has(svg) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
