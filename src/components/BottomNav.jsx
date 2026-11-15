@@ -11,6 +11,7 @@ export default function BottomNav() {
       {role === 'admin' && (
         <>
           <NavItem to="/admin" icon="admin_panel_settings" label="Global" />
+          <NavItem to="/admin/exercises" icon="fitness_center" label="Exercícios" />
         </>
       )}
       {role === 'pt' && (

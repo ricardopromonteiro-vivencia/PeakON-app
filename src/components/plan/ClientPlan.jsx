@@ -1,6 +1,107 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 
+// ─── Converte URL do YouTube para URL de embed ────────────────
+function getYouTubeEmbedUrl(url) {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    // Formato: youtube.com/watch?v=ID
+    let videoId = u.searchParams.get('v');
+    // Formato: youtu.be/ID
+    if (!videoId && u.hostname === 'youtu.be') {
+      videoId = u.pathname.slice(1);
+    }
+    // Formato: youtube.com/embed/ID (já é embed)
+    if (!videoId && u.pathname.startsWith('/embed/')) {
+      videoId = u.pathname.split('/embed/')[1];
+    }
+    // Formato: youtube.com/shorts/ID
+    if (!videoId && u.pathname.startsWith('/shorts/')) {
+      videoId = u.pathname.split('/shorts/')[1];
+    }
+    if (!videoId) return null;
+    return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`;
+  } catch {
+    return null;
+  }
+}
+
+// ─── Modal de demo de exercício ───────────────────────────────
+function DemoModal({ exercise, onClose }) {
+  const embedUrl = getYouTubeEmbedUrl(exercise.demo_url);
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-surface rounded-[2rem] w-full max-w-lg overflow-hidden shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between px-5 pt-5 pb-3">
+          <div className="flex-1 min-w-0 pr-3">
+            <p className="text-[10px] font-black text-[#00677f] uppercase tracking-widest">{exercise.category}</p>
+            <h3 className="font-black text-primary text-lg leading-tight mt-0.5">{exercise.name}</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error transition-colors flex-shrink-0"
+          >
+            <span className="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        {/* Vídeo embed */}
+        {embedUrl ? (
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              src={embedUrl}
+              className="absolute inset-0 w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={`Demo: ${exercise.name}`}
+            />
+          </div>
+        ) : (
+          <div className="mx-5 mb-5 bg-surface-container rounded-2xl p-6 text-center">
+            <span className="material-symbols-outlined text-4xl text-outline mb-2 block">play_circle</span>
+            <p className="text-on-surface-variant text-sm font-medium">URL de vídeo inválida.</p>
+            <a
+              href={exercise.demo_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary font-bold text-sm underline mt-2 block"
+            >
+              Abrir link externo
+            </a>
+          </div>
+        )}
+
+        {/* Rodapé com link externo */}
+        <div className="px-5 py-4 flex justify-between items-center border-t border-outline-variant/10">
+          <a
+            href={exercise.demo_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-[#00677f] text-xs font-bold hover:underline"
+          >
+            <span className="material-symbols-outlined text-sm">open_in_new</span>
+            Abrir no YouTube
+          </a>
+          <button
+            onClick={onClose}
+            className="bg-primary text-on-primary px-5 py-2 rounded-xl font-black text-xs uppercase tracking-widest"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /**
  * ClientPlan — mostra os planos de treino do aluno.
  *
@@ -22,13 +123,14 @@ function PlanView({ clientId, planEntry, readOnly }) {
   const [editVal, setEditVal]     = useState('');
   const [editNotes, setEditNotes] = useState('');
   const [saving, setSaving]       = useState(false);
+  const [demoExercise, setDemoExercise] = useState(null); // exercício aberto no modal
 
   const load = useCallback(async () => {
     try {
       const [{ data: exData }, { data: weightData }] = await Promise.all([
         supabase
           .from('workout_plan_exercises')
-          .select('*, exercises(name, category)')
+          .select('*, exercises(name, category, demo_url)')
           .eq('plan_id', planId)
           .order('sort_order'),
         supabase
@@ -95,6 +197,11 @@ function PlanView({ clientId, planEntry, readOnly }) {
 
   return (
     <div className="space-y-3">
+      {/* Modal de demo */}
+      {demoExercise && (
+        <DemoModal exercise={demoExercise} onClose={() => setDemoExercise(null)} />
+      )}
+
       {error && (
         <div className="bg-error/10 text-error text-sm font-bold px-4 py-3 rounded-2xl border border-error/20">{error}</div>
       )}
@@ -131,6 +238,15 @@ function PlanView({ clientId, planEntry, readOnly }) {
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <span className="bg-primary/10 text-primary text-xs font-black px-2.5 py-1 rounded-xl">{pex.sets} séries</span>
                   <span className="bg-primary/10 text-primary text-xs font-black px-2.5 py-1 rounded-xl">{pex.reps} reps</span>
+                  {pex.exercises?.demo_url && (
+                    <button
+                      onClick={() => setDemoExercise(pex.exercises)}
+                      className="flex items-center gap-1 bg-[#00677f]/10 text-[#00677f] text-xs font-black px-2.5 py-1 rounded-xl hover:bg-[#00677f]/20 active:scale-95 transition-all"
+                    >
+                      <span className="material-symbols-outlined text-sm">play_circle</span>
+                      Ver execução
+                    </button>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2 mt-2 flex-wrap">

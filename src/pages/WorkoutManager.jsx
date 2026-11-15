@@ -12,6 +12,7 @@ export default function WorkoutManager() {
   // States Novo Exercicio
   const [newExName, setNewExName] = useState('');
   const [newExCategory, setNewExCategory] = useState('Perna');
+  const [newExDemoUrl, setNewExDemoUrl] = useState('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [addingEx, setAddingEx] = useState(false);
 
@@ -57,12 +58,19 @@ export default function WorkoutManager() {
     if (!newExName) return;
     setAddingEx(true);
     const { data, error } = await supabase.from('exercises').insert([
-      { name: newExName, category: newExCategory, equipment: 'Máquina', created_by: session.user.id }
+      {
+        name: newExName,
+        category: newExCategory,
+        equipment: 'Máquina',
+        created_by: session.user.id,
+        demo_url: newExDemoUrl.trim() || null,
+      }
     ]).select().single();
     
     if (data && !error) {
       setExercises(prev => [...prev, data]);
       setNewExName('');
+      setNewExDemoUrl('');
       setIsCustomCategory(false);
     }
     setAddingEx(false);
@@ -299,6 +307,16 @@ export default function WorkoutManager() {
                   )}
                   <button type="submit" disabled={addingEx || !newExName || !newExCategory} className="w-1/2 bg-[#00677f] text-on-secondary rounded-xl uppercase font-bold text-sm hover:opacity-90 disabled:opacity-50">Adicionar</button>
                 </div>
+                <div className="flex items-center gap-2 bg-surface border border-[#00677f]/20 rounded-xl px-4 py-3">
+                  <span className="material-symbols-outlined text-[#00677f]/60 text-lg">play_circle</span>
+                  <input
+                    type="url"
+                    value={newExDemoUrl}
+                    onChange={e => setNewExDemoUrl(e.target.value)}
+                    placeholder="URL YouTube (opcional) — ex: https://youtube.com/watch?v=..."
+                    className="flex-1 bg-transparent text-sm font-medium text-on-surface focus:outline-none placeholder:text-outline/50"
+                  />
+                </div>
               </div>
             </form>
 
@@ -310,6 +328,18 @@ export default function WorkoutManager() {
                     <p className="font-bold text-on-surface">{ex.name}</p>
                     <p className="text-xs uppercase font-black text-[#00677f] tracking-wider mt-1">{ex.category}</p>
                   </div>
+                  {ex.demo_url && (
+                    <a
+                      href={ex.demo_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      className="flex items-center gap-1 bg-[#00677f]/10 text-[#00677f] text-[10px] font-black px-2.5 py-1.5 rounded-xl hover:bg-[#00677f]/20 transition-colors flex-shrink-0 ml-3"
+                    >
+                      <span className="material-symbols-outlined text-sm">play_circle</span>
+                      Demo
+                    </a>
+                  )}
                 </div>
               ))}
             </div>

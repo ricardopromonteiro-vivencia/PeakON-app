@@ -13,6 +13,7 @@ import LogProgress from './pages/LogProgress';
 import LogPhoto from './pages/LogPhoto';
 
 import AdminDashboard from './pages/AdminDashboard';
+import AdminExercises from './pages/AdminExercises';
 import WorkoutManager from './pages/WorkoutManager';
 import Agenda from './pages/Agenda';
 import ClientDashboard from './pages/ClientDashboard';
@@ -21,6 +22,7 @@ import AdminPTView from './pages/AdminPTView';
 import AdminClientView from './pages/AdminClientView';
 import Terms from './pages/Terms';
 import Help from './pages/Help';
+import Notifications from './pages/Notifications';
 
 export default function App() {
   const { session, userProfile, setSession } = useAppStore();
@@ -77,9 +79,11 @@ export default function App() {
             {role === 'admin' && (
               <>
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/exercises" element={<AdminExercises />} />
                 <Route path="/admin/pt/:ptId" element={<AdminPTView />} />
                 <Route path="/admin/pt/:ptId/client/:clientId" element={<AdminClientView />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/notifications" element={<Notifications />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/help" element={<Help />} />
               </>
@@ -96,6 +100,7 @@ export default function App() {
                 <Route path="/workouts" element={<WorkoutManager />} />
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/notifications" element={<Notifications />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/help" element={<Help />} />
               </>
@@ -106,6 +111,7 @@ export default function App() {
                 <Route path="/" element={<ClientDashboard />} />
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/notifications" element={<Notifications />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/help" element={<Help />} />
               </>

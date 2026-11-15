@@ -1,0 +1,61 @@
+## Security Headers para PeakON
+## Este ficheiro configura headers HTTP de segurança no Netlify
+## Documentação: https://docs.netlify.com/routing/headers/
+
+/*
+  # Content Security Policy (CSP)
+  # Define quais recursos podem ser carregados pela app
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://api.ipify.org; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; media-src 'self' https://www.youtube.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+
+  # X-Frame-Options
+  # Previne a app ser embebida em iframes (clickjacking)
+  X-Frame-Options: DENY
+
+  # X-Content-Type-Options
+  # Impede o browser de tentar adivinhar o tipo de conteúdo (MIME sniffing)
+  X-Content-Type-Options: nosniff
+
+  # Referrer-Policy
+  # Controla quanto de informação é enviada no Referer header
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # Permissions-Policy (antigamente Feature-Policy)
+  # Controla acesso a APIs do browser (câmera, microfone, etc)
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+
+  # X-XSS-Protection
+  # Ativa proteção contra XSS no browser (legacy, mas não faz mal)
+  X-XSS-Protection: 1; mode=block
+
+  # Strict-Transport-Security (HSTS)
+  # Força HTTPS por 1 ano + subdomínios
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+  # Cache-Control para HTML
+  # Força revalidação para evitar servir versões antigas
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Cache agressivo para assets estáticos (JS, CSS, imagens)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache para ícones e manifest
+/*.png
+  Cache-Control: public, max-age=604800
+
+/*.svg
+  Cache-Control: public, max-age=604800
+
+/manifest.json
+  Cache-Control: public, max-age=604800
+
+# Service Worker - sem cache (sempre buscar versão mais recente)
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Robots.txt e sitemap
+/robots.txt
+  Cache-Control: public, max-age=3600
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600

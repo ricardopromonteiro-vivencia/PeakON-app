@@ -16,6 +16,82 @@ function PeakONLogo({ size = 'lg' }) {
   );
 }
 
+// ─── Helper para registar tentativas de auth ──────────────────
+async function logAuthAttempt(email, type, success, errorMsg = null) {
+  try {
+    // Tenta obter IP do cliente (fallback se não disponível)
+    const ipResponse = await fetch('https://api.ipify.org?format=json').catch(() => null);
+    const ipData = ipResponse ? await ipResponse.json() : null;
+    
+    await supabase.from('auth_attempts').insert([{
+      email: email.toLowerCase(),
+      ip_address: ipData?.ip || 'unknown',
+      user_agent: navigator.userAgent.substring(0, 200), // limitar tamanho
+      attempt_type: type,
+      success: success,
+      error_message: errorMsg,
+    }]);
+  } catch (e) {
+    // Silencioso - não bloquear o fluxo se logging falhar
+    console.warn('Failed to log auth attempt:', e);
+  }
+}
+
+// ─── Rate Limiting Client-Side ────────────────────────────────
+function checkRateLimit(email) {
+  const key = `ratelimit_${email.toLowerCase()}`;
+  const stored = localStorage.getItem(key);
+  
+  if (!stored) return { allowed: true, remaining: 10 };
+  
+  const data = JSON.parse(stored);
+  const now = Date.now();
+  const hourAgo = now - (60 * 60 * 1000); // 1 hora
+  
+  // Limpar tentativas antigas (> 1 hora)
+  data.attempts = data.attempts.filter(timestamp => timestamp > hourAgo);
+  
+  // Atualizar localStorage
+  localStorage.setItem(key, JSON.stringify(data));
+  
+  const remaining = 10 - data.attempts.length;
+  const allowed = data.attempts.length < 10;
+  
+  return { allowed, remaining, attempts: data.attempts.length };
+}
+
+function recordAttempt(email) {
+  const key = `ratelimit_${email.toLowerCase()}`;
+  const stored = localStorage.getItem(key);
+  const now = Date.now();
+  
+  let data = stored ? JSON.parse(stored) : { attempts: [] };
+  data.attempts.push(now);
+  
+  // Manter apenas últimas 10 tentativas
+  if (data.attempts.length > 10) {
+    data.attempts = data.attempts.slice(-10);
+  }
+  
+  localStorage.setItem(key, JSON.stringify(data));
+}
+
+function getRateLimitResetTime(email) {
+  const key = `ratelimit_${email.toLowerCase()}`;
+  const stored = localStorage.getItem(key);
+  if (!stored) return null;
+  
+  const data = JSON.parse(stored);
+  if (data.attempts.length === 0) return null;
+  
+  // Tempo até a tentativa mais antiga expirar (1 hora após primeira tentativa)
+  const oldestAttempt = Math.min(...data.attempts);
+  const resetTime = oldestAttempt + (60 * 60 * 1000);
+  const minutesRemaining = Math.ceil((resetTime - Date.now()) / (60 * 1000));
+  
+  return minutesRemaining > 0 ? minutesRemaining : 0;
+}
+
 // ─── Tradução de erros do Supabase ───────────────────────────
 function traduzir(msg = '') {
   if (msg.includes('Invalid login credentials'))    return 'Email ou palavra-passe incorretos.';
@@ -75,6 +151,15 @@ function ForgotPassword({ onBack }) {
   const handleReset = async (e) => {
     e.preventDefault();
     if (!email.trim()) { setError('Por favor insere o teu email.'); return; }
+    
+    // Rate limiting check
+    const rateLimit = checkRateLimit(email.trim());
+    if (!rateLimit.allowed) {
+      const minutesRemaining = getRateLimitResetTime(email.trim());
+      setError(`Demasiadas tentativas. Tenta novamente em ${minutesRemaining} minuto${minutesRemaining !== 1 ? 's' : ''}.`);
+      return;
+    }
+    
     setLoading(true);
     setError('');
     try {
@@ -85,6 +170,7 @@ function ForgotPassword({ onBack }) {
         .maybeSingle();
 
       if (!userRow) {
+        recordAttempt(email.trim()); // Registar tentativa falhada
         setError('Este email não está registado. Verifica o endereço e tenta novamente.');
         setLoading(false);
         return;
@@ -95,8 +181,13 @@ function ForgotPassword({ onBack }) {
         { redirectTo: `${window.location.origin}/profile` }
       );
       if (resetErr) throw resetErr;
+      await logAuthAttempt(email.trim(), 'password_reset', true);
+      // Limpar rate limit em caso de sucesso
+      localStorage.removeItem(`ratelimit_${email.trim().toLowerCase()}`);
       setSent(true);
     } catch {
+      recordAttempt(email.trim()); // Registar tentativa falhada
+      await logAuthAttempt(email.trim(), 'password_reset', false, 'Reset password failed');
       setError('Ocorreu um erro. Tenta novamente mais tarde.');
     } finally {
       setLoading(false);
@@ -176,13 +267,54 @@ export default function Login() {
       setError('Preenche o email e a palavra-passe para continuar.');
       return;
     }
+
+    // Rate limiting check (apenas para login e password reset)
+    if (type === 'login') {
+      const rateLimit = checkRateLimit(email.trim());
+      if (!rateLimit.allowed) {
+        const minutesRemaining = getRateLimitResetTime(email.trim());
+        setError(`Demasiadas tentativas falhadas. Tenta novamente em ${minutesRemaining} minuto${minutesRemaining !== 1 ? 's' : ''}.`);
+        return;
+      }
+    }
+
+    // Validação de força de password (apenas no signup)
+    if (type === 'signup') {
+      if (password.length < 8) {
+        setError('A palavra-passe deve ter pelo menos 8 caracteres.');
+        return;
+      }
+      const hasUppercase = /[A-Z]/.test(password);
+      const hasLowercase = /[a-z]/.test(password);
+      const hasNumber = /\d/.test(password);
+      
+      if (!hasUppercase || !hasLowercase || !hasNumber) {
+        setError('A palavra-passe deve incluir maiúsculas, minúsculas e números.');
+        return;
+      }
+    }
+
     setLoading(true);
     setError('');
 
     if (type === 'login') {
       const { error: authErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-      if (authErr) { setError(traduzir(authErr.message)); }
-      else { navigate('/'); }
+      if (authErr) {
+        recordAttempt(email.trim()); // Registar tentativa falhada
+        await logAuthAttempt(email.trim(), 'login', false, authErr.message);
+        
+        const rateLimit = checkRateLimit(email.trim());
+        if (rateLimit.remaining <= 3 && rateLimit.remaining > 0) {
+          setError(`${traduzir(authErr.message)} (${rateLimit.remaining} tentativa${rateLimit.remaining !== 1 ? 's' : ''} restante${rateLimit.remaining !== 1 ? 's' : ''})`);
+        } else {
+          setError(traduzir(authErr.message));
+        }
+      } else {
+        await logAuthAttempt(email.trim(), 'login', true);
+        // Limpar rate limit em caso de sucesso
+        localStorage.removeItem(`ratelimit_${email.trim().toLowerCase()}`);
+        navigate('/');
+      }
     } else {
       // Signup
       const options = { data: {} };
@@ -209,8 +341,10 @@ export default function Login() {
 
       const { error: authErr } = await supabase.auth.signUp({ email: email.trim(), password, options });
       if (authErr) {
+        await logAuthAttempt(email.trim(), 'signup', false, authErr.message);
         setError(traduzir(authErr.message));
       } else {
+        await logAuthAttempt(email.trim(), 'signup', true);
         // Registo bem-sucedido — mostra ecrã de confirmação de email
         setSignupDone(true);
       }
